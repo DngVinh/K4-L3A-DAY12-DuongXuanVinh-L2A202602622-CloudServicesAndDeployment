@@ -8,6 +8,7 @@ const elements = {
   apiNotice: document.getElementById("apiNotice"),
   apiBaseInput: document.getElementById("apiBaseInput"),
   apiKeyInput: document.getElementById("apiKeyInput"),
+  cancelSettingsButton: document.getElementById("cancelSettingsButton"),
   chatForm: document.getElementById("chatForm"),
   chatScroll: document.getElementById("chatScroll"),
   closeSettingsButton: document.getElementById("closeSettingsButton"),
