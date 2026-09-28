@@ -31,10 +31,17 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 |------|--------|---------|
 | `PORT` | ✅ | platform tự gán |
 | `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
+| `LLM_PROVIDER` | ✅ | `deepseek` |
+| `DEEPSEEK_API_KEY` | ✅ | secret trên Railway, không ghi vào repo |
+| `DEEPSEEK_BASE_URL` | ✅ | `https://api.deepseek.com` |
+| `DEEPSEEK_MODEL` | ✅ | `deepseek-flash` |
 | `REDIS_URL` | ✅ | Redis add-on managed của Railway, tham chiếu `${{Redis.REDIS_URL}}` |
 | `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
 | `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
 | `LOG_LEVEL` | ✅ | INFO |
+
+API `/ask` hiện gọi DeepSeek trên server. Giao diện chỉ cần `AGENT_API_KEY`; không nhập
+DeepSeek key vào trình duyệt.
 
 ## Lệnh Kiểm Tra
 
@@ -78,6 +85,7 @@ GET /health → 200 {"status":"ok","service":"day12-agent","version":"1.0.0"}
 GET /ready → 200 {"status":"ready","redis":true}
 POST /ask không có X-API-Key → 401
 POST /ask có X-API-Key, X-User-Id: cp5-smoke → 200
+POST /ask qua DeepSeek → 200
 ```
 
 ## Ảnh Chụp Màn Hình

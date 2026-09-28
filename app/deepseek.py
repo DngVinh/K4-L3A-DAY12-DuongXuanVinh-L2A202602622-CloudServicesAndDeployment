@@ -96,33 +96,39 @@ def ask_deepseek(question: str, history: list[dict], settings: Settings) -> dict
         "stream": False,
     }
 
-    try:
-        response = httpx.post(
-            url,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            json=payload,
-            timeout=settings.deepseek_timeout_seconds,
-        )
-        response.raise_for_status()
-        body = response.json()
-    except httpx.TimeoutException as exc:
-        raise DeepSeekProviderError("DeepSeek request timed out") from exc
-    except httpx.HTTPStatusError as exc:
-        raise DeepSeekProviderError(
-            f"DeepSeek returned HTTP {exc.response.status_code}"
-        ) from exc
-    except (httpx.RequestError, ValueError) as exc:
-        raise DeepSeekProviderError("DeepSeek request could not be completed") from exc
+    answer = ""
+    body: object = {}
+    for attempt in range(2):
+        try:
+            response = httpx.post(
+                url,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json=payload,
+                timeout=settings.deepseek_timeout_seconds,
+            )
+            response.raise_for_status()
+            body = response.json()
+        except httpx.TimeoutException as exc:
+            raise DeepSeekProviderError("DeepSeek request timed out") from exc
+        except httpx.HTTPStatusError as exc:
+            raise DeepSeekProviderError(
+                f"DeepSeek returned HTTP {exc.response.status_code}"
+            ) from exc
+        except (httpx.RequestError, ValueError) as exc:
+            raise DeepSeekProviderError("DeepSeek request could not be completed") from exc
 
-    try:
-        choice = body["choices"][0]
-        message = choice["message"]
-        answer = _message_content(message.get("content"))
-    except (KeyError, IndexError, TypeError) as exc:
-        raise DeepSeekProviderError("DeepSeek returned an unexpected response") from exc
+        try:
+            choice = body["choices"][0]  # type: ignore[index]
+            message = choice["message"]
+            answer = _message_content(message.get("content"))
+        except (KeyError, IndexError, TypeError) as exc:
+            raise DeepSeekProviderError("DeepSeek returned an unexpected response") from exc
+
+        if answer.strip() or attempt == 1:
+            break
 
     if not answer.strip():
         raise DeepSeekProviderError("DeepSeek returned an empty answer")
