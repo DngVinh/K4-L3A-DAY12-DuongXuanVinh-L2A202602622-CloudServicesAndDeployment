@@ -19,6 +19,8 @@ services:
         value: "10"
       - key: MONTHLY_BUDGET_USD
         value: "10.0"
+      - key: GLOBAL_MONTHLY_BUDGET_USD
+        value: "50.0"
       - key: REDIS_URL
         fromService:
           name: day12-redis

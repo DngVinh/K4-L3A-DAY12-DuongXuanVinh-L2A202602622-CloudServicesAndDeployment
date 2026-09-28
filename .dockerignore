@@ -7,6 +7,7 @@
 .git
 .gitignore
 .venv
+.product_venv
 venv
 __pycache__
 *.py[cod]

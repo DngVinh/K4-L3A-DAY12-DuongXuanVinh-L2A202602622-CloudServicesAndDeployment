@@ -12,7 +12,7 @@ def ask_llm(question: str, history: list[dict] | None = None) -> dict:
     settings = get_settings()
     history = history or []
     if settings.llm_provider.strip().lower() == "deepseek":
-        return ask_deepseek(question, history, settings)
+        return ask_deepseek(question, history, settings, max_attempts=1)
     return ask_mock_llm(question, history)
 
 

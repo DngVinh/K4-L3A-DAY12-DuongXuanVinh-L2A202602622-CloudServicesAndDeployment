@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,6 +63,27 @@ class Settings(BaseSettings):
     deepseek_input_price_per_million: float = 0.15
     deepseek_input_cache_price_per_million: float = 0.003
     deepseek_output_price_per_million: float = 0.60
+    # Optional dedicated keys for browser clients. The owner key stays private.
+    agent_api_keys: dict[str, str] = Field(default_factory=dict)
+    global_monthly_budget_usd: float = 50.0
+    strict_api_identity: bool = False
+
+    @field_validator("agent_api_keys")
+    @classmethod
+    def validate_client_keys(cls, value: dict[str, str]) -> dict[str, str]:
+        import re
+
+        if len(value) > 100 or len(set(value.values())) != len(value):
+            raise ValueError("client API keys must be unique (maximum 100)")
+        if any(name == "owner" or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", name) or len(key) < 32 for name, key in value.items()):
+            raise ValueError("invalid client identity or API key shorter than 32 characters")
+        return value
+
+    @model_validator(mode="after")
+    def validate_master_key(self) -> "Settings":
+        if self.agent_api_key in self.agent_api_keys.values():
+            raise ValueError("owner key must differ from client keys")
+        return self
 
 
 @lru_cache(maxsize=1)

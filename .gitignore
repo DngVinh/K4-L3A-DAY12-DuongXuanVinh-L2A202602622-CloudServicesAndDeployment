@@ -7,6 +7,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+.product_venv/
 venv/
 env/
 .pytest_cache/

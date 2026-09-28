@@ -60,7 +60,9 @@ def _usage_cost(
     return prompt_tokens, completion_tokens, round(cost, 8)
 
 
-def ask_deepseek(question: str, history: list[dict], settings: Settings) -> dict:
+def ask_deepseek(
+    question: str, history: list[dict], settings: Settings, *, max_attempts: int = 2
+) -> dict:
     """Call DeepSeek Chat Completions and adapt it to the app response contract."""
     api_key = settings.deepseek_api_key
     if not api_key:
@@ -98,7 +100,7 @@ def ask_deepseek(question: str, history: list[dict], settings: Settings) -> dict
 
     answer = ""
     body: object = {}
-    for attempt in range(2):
+    for attempt in range(max_attempts):
         try:
             response = httpx.post(
                 url,
@@ -127,7 +129,7 @@ def ask_deepseek(question: str, history: list[dict], settings: Settings) -> dict
         except (KeyError, IndexError, TypeError) as exc:
             raise DeepSeekProviderError("DeepSeek returned an unexpected response") from exc
 
-        if answer.strip() or attempt == 1:
+        if answer.strip() or attempt == max_attempts - 1:
             break
 
     if not answer.strip():

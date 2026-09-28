@@ -13,6 +13,7 @@ import time
 import uuid
 
 from fastapi import HTTPException, status
+from redis.exceptions import WatchError
 
 WINDOW_SECONDS = 60
 
@@ -60,14 +61,24 @@ class RateLimiter:
         sẽ chặn nhầm ngay ở request thứ ``limit``.
         """
         now = now if now is not None else time.time()
-        if self.hit_count(user_id, now) >= self.limit:
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="rate limit exceeded",
-                headers={"Retry-After": str(WINDOW_SECONDS)},
-            )
-
         key = self._key(user_id)
-        member = f"{now}:{uuid.uuid4().hex}"
-        self.client.zadd(key, {member: now})
-        self.client.expire(key, WINDOW_SECONDS)
+        for _ in range(10):
+            try:
+                with self.client.pipeline() as pipe:
+                    pipe.watch(key)
+                    count = pipe.zcount(key, now - WINDOW_SECONDS, "+inf")
+                    if count >= self.limit:
+                        raise HTTPException(
+                            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                            detail="rate limit exceeded",
+                            headers={"Retry-After": str(WINDOW_SECONDS)},
+                        )
+                    pipe.multi()
+                    pipe.zremrangebyscore(key, "-inf", now - WINDOW_SECONDS)
+                    pipe.zadd(key, {f"{now}:{uuid.uuid4().hex}": now})
+                    pipe.expire(key, WINDOW_SECONDS)
+                    pipe.execute()
+                    return
+            except WatchError:
+                continue
+        raise HTTPException(status_code=503, detail="rate limiter busy")

@@ -42,7 +42,9 @@ class ConversationStore:
     @staticmethod
     def _key(user_id: str) -> str:
         """CHO SẴN."""
-        return f"history:{user_id}"
+        # Secure mode must not attach legacy caller-selected history to a key.
+        namespace = "history:v2" if get_settings().strict_api_identity else "history"
+        return f"{namespace}:{user_id}"
 
     def ping(self) -> bool:
         """Redis có trả lời không? Dùng cho endpoint /ready.

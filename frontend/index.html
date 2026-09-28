@@ -29,7 +29,7 @@
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          <span>New conversation</span>
+          <span>Clear screen</span>
         </button>
 
         <div class="sidebar-heading">
@@ -149,11 +149,9 @@
           </div>
           <button class="icon-button" id="closeSettingsButton" type="button" aria-label="Close settings">×</button>
         </div>
-        <p class="modal-copy">Connect this browser to your CloudPilot service. Enter the service key here; the DeepSeek key stays server-side and never reaches the browser.</p>
+        <p class="modal-copy">Enter your individual API key. It stays in memory until this page is closed or reloaded. Clearing the screen does not erase server history.</p>
         <form id="settingsForm">
-          <label>API base URL<input id="apiBaseInput" type="url" autocomplete="url" placeholder="https://your-service.up.railway.app" /></label>
-          <label>Service API key (AGENT_API_KEY)<input id="apiKeyInput" type="password" autocomplete="off" placeholder="Paste your service API key" /></label>
-          <label>User ID<input id="userIdInput" type="text" autocomplete="off" maxlength="80" placeholder="e.g. vinh-demo" /></label>
+          <label>Individual API key<input id="apiKeyInput" type="password" autocomplete="off" placeholder="Paste your own API key" /></label>
           <div class="modal-actions">
             <button class="secondary-button" id="cancelSettingsButton" type="button">Cancel</button>
             <button class="primary-button" type="submit">Save connection</button>

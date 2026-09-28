@@ -1,5 +1,7 @@
 # K4 — Level 3A, Ngày 12: Hạ Tầng Cloud & Deployment (240 phút)
 
+![CI](https://github.com/DngVinh/K4-L3A-DAY12-DuongXuanVinh-L2A202602622-CloudServicesAndDeployment/actions/workflows/ci.yml/badge.svg)
+
 Đưa một AI agent từ `localhost:8000` lên một địa chỉ công khai mà người khác
 gọi được, có bảo mật, có giới hạn chi phí, và không sập khi bạn deploy bản mới.
 
@@ -15,6 +17,7 @@ Tài liệu chính thức của bài lab:
 - [RUBRIC.md](RUBRIC.md) — tiêu chí chấm, bằng chứng và điều kiện mất điểm
 - [CHECKPOINTS.md](CHECKPOINTS.md) — sản phẩm, kiến thức và cách tự kiểm tra từng checkpoint
 - [RULES.md](RULES.md) — quy định làm bài, dùng AI, hợp tác và bảo mật
+- [SECURITY_HARDENING.md](SECURITY_HARDENING.md) — cấu hình bảo mật tùy chọn, giữ nguyên hợp đồng bài lab
 
 | Được phép | Không được phép |
 |-----------|-----------------|

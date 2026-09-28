@@ -1,18 +1,12 @@
-const STORAGE_KEYS = {
-  apiBase: "cloudpilot.apiBase",
-  apiKey: "cloudpilot.apiKey",
-  userId: "cloudpilot.userId",
-};
-
 const elements = {
   apiNotice: document.getElementById("apiNotice"),
-  apiBaseInput: document.getElementById("apiBaseInput"),
   apiKeyInput: document.getElementById("apiKeyInput"),
   cancelSettingsButton: document.getElementById("cancelSettingsButton"),
   chatForm: document.getElementById("chatForm"),
   chatScroll: document.getElementById("chatScroll"),
   closeSettingsButton: document.getElementById("closeSettingsButton"),
   connectionLabel: document.getElementById("connectionLabel"),
+  conversationItem: document.getElementById("conversationItem"),
   conversationUser: document.getElementById("conversationUser"),
   inlineSettingsButton: document.getElementById("inlineSettingsButton"),
   messageInput: document.getElementById("messageInput"),
@@ -29,31 +23,14 @@ const elements = {
   statusDot: document.getElementById("statusDot"),
   statusPill: document.getElementById("statusPill"),
   statusText: document.getElementById("statusText"),
-  userIdInput: document.getElementById("userIdInput"),
   welcomeState: document.getElementById("welcomeState"),
 };
 
 const state = {
-  apiBase: sessionStorage.getItem(STORAGE_KEYS.apiBase) || window.location.origin,
-  apiKey: sessionStorage.getItem(STORAGE_KEYS.apiKey) || "",
-  userId: sessionStorage.getItem(STORAGE_KEYS.userId) || createUserId(),
+  apiKey: "",
+  userId: "",
   busy: false,
 };
-
-function createUserId() {
-  const suffix = Math.random().toString(36).slice(2, 8);
-  return `visitor-${suffix}`;
-}
-
-function normalizeBase(value) {
-  return (value || window.location.origin).trim().replace(/\/+$/, "") || window.location.origin;
-}
-
-function saveSession() {
-  sessionStorage.setItem(STORAGE_KEYS.apiBase, state.apiBase);
-  sessionStorage.setItem(STORAGE_KEYS.apiKey, state.apiKey);
-  sessionStorage.setItem(STORAGE_KEYS.userId, state.userId);
-}
 
 function setStatus(kind, text) {
   elements.statusDot.className = `status-dot ${kind}`;
@@ -66,8 +43,8 @@ async function checkStatus() {
   setStatus("", "Checking status");
   try {
     const [healthResponse, readyResponse] = await Promise.all([
-      fetch(`${state.apiBase}/health`, { cache: "no-store" }),
-      fetch(`${state.apiBase}/ready`, { cache: "no-store" }),
+      fetch("/health", { cache: "no-store" }),
+      fetch("/ready", { cache: "no-store" }),
     ]);
     if (healthResponse.ok && readyResponse.ok) {
       setStatus("online", "All systems operational");
@@ -82,15 +59,13 @@ async function checkStatus() {
 function updateConnectionState() {
   const connected = Boolean(state.apiKey);
   elements.apiNotice.classList.toggle("hidden", connected);
-  elements.connectionLabel.textContent = connected ? `Connected · ${state.userId}` : "No API key connected";
+  elements.connectionLabel.textContent = connected ? `Key entered${state.userId ? ` · ${state.userId}` : ""}` : "No API key entered";
   elements.connectionLabel.classList.toggle("connected", connected);
-  elements.conversationUser.textContent = state.userId;
+  elements.conversationUser.textContent = state.userId || "Current key";
 }
 
 function openSettings() {
-  elements.apiBaseInput.value = state.apiBase;
   elements.apiKeyInput.value = state.apiKey;
-  elements.userIdInput.value = state.userId;
   elements.settingsModal.hidden = false;
   window.setTimeout(() => elements.apiKeyInput.focus(), 30);
 }
@@ -155,7 +130,7 @@ function removeTyping() {
 
 function friendlyError(status, detail) {
   if (status === 401) return "Your API key is missing or invalid. Open Connection settings and try again.";
-  if (status === 402) return "This user has reached the monthly budget. Try a new user ID or raise the budget on the service.";
+  if (status === 402) return "This key has reached its monthly budget. Contact the service owner.";
   if (status === 429) return "You are sending messages too quickly. Wait a moment and try again.";
   return detail || "The service could not complete that request. Check the service status and try again.";
 }
@@ -176,12 +151,11 @@ async function sendMessage(question) {
   appendTyping();
 
   try {
-    const response = await fetch(`${state.apiBase}/ask`, {
+    const response = await fetch("/ask", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-API-Key": state.apiKey,
-        "X-User-Id": state.userId,
       },
       body: JSON.stringify({ question: trimmed }),
     });
@@ -191,6 +165,8 @@ async function sendMessage(question) {
       appendMessage("assistant", friendlyError(response.status, data.detail));
       return;
     }
+    state.userId = data.user_id || "";
+    updateConnectionState();
     const tokens = data.tokens || {};
     appendMessage("assistant", data.answer || "I did not receive an answer.", [
       `History ${data.history_length ?? 0}`,
@@ -209,11 +185,8 @@ async function sendMessage(question) {
 }
 
 function startNewChat() {
-  state.userId = createUserId();
-  saveSession();
   elements.messages.replaceChildren();
   elements.welcomeState.style.display = "block";
-  updateConnectionState();
   elements.messageInput.focus();
 }
 
@@ -252,10 +225,8 @@ elements.settingsModal.addEventListener("click", (event) => {
 });
 elements.settingsForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  state.apiBase = normalizeBase(elements.apiBaseInput.value);
   state.apiKey = elements.apiKeyInput.value.trim();
-  state.userId = elements.userIdInput.value.trim() || createUserId();
-  saveSession();
+  state.userId = "";
   updateConnectionState();
   closeSettings();
   checkStatus();

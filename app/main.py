@@ -17,14 +17,14 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from fastapi.staticfiles import StaticFiles
 
 from .auth import verify_api_key
 from .config import get_settings
-from .cost_guard import CostGuard
+from .cost_guard import CostGuard, estimate_max_cost
 from .llm import DeepSeekProviderError, ask_llm
 from .lifecycle import lifecycle
 from .logging_utils import log_event
@@ -52,7 +52,8 @@ def get_rate_limiter() -> RateLimiter:
 
 @lru_cache(maxsize=1)
 def get_cost_guard() -> CostGuard:
-    return CostGuard(get_redis_client(), get_settings().monthly_budget_usd)
+    settings = get_settings()
+    return CostGuard(get_redis_client(), settings.monthly_budget_usd, settings.global_monthly_budget_usd)
 
 
 @asynccontextmanager
@@ -64,8 +65,23 @@ async def lifespan(_app: FastAPI):
     log_event("service_stopped", service=SERVICE_NAME)
 
 
-app = FastAPI(title="Day 12 Production Agent", version=SERVICE_VERSION, lifespan=lifespan)
+app = FastAPI(
+    title="Day 12 Agent", version=SERVICE_VERSION, lifespan=lifespan,
+    docs_url=None, redoc_url=None, openapi_url=None,
+)
 
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'none'; script-src 'self'; style-src 'self'; "
+        "img-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'"
+    )
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
@@ -159,18 +175,27 @@ def ask(
     ``user_id`` do ``verify_api_key`` trả về, nên request không có API key
     hợp lệ sẽ dừng ở 401 trước khi chạm vào bất cứ dòng nào ở đây.
     """
-    limiter.check(user_id)
-    guard.check(user_id)
-
+    settings = get_settings()
+    quota_id = f"v2:{user_id}" if settings.strict_api_identity else user_id
+    limiter.check(quota_id)
+    if not settings.strict_api_identity:
+        guard.check(quota_id)
     history = store.get_history(user_id)
+    reservation = None
+    if settings.strict_api_identity:
+        reservation = guard.reserve(quota_id, estimate_max_cost(payload.question, history, settings))
     try:
         result = ask_llm(payload.question, history)
     except DeepSeekProviderError as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        # The upstream may have billed a timed-out call; keep the reservation.
+        raise HTTPException(status_code=502, detail="AI provider unavailable") from exc
 
     store.append(user_id, "user", payload.question)
     store.append(user_id, "assistant", result["answer"])
-    guard.record(user_id, result["cost_usd"])
+    if reservation is None:
+        guard.record(quota_id, result["cost_usd"])
+    else:
+        guard.settle(reservation, result["cost_usd"])
     log_event(
         "ask_completed",
         user_id=user_id,
