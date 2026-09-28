@@ -19,6 +19,7 @@
 | Mục | Nội dung |
 |-----|----------|
 | Public URL | https://agent-production-43eb.up.railway.app |
+| Demo UI | https://agent-production-43eb.up.railway.app/ |
 | Platform | Railway |
 | Ngày deploy | 2026-09-28 |
 

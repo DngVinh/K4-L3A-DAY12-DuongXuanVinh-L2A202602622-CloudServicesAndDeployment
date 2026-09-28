@@ -15,10 +15,12 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from functools import lru_cache
+from pathlib import Path
 
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from fastapi.staticfiles import StaticFiles
 
 from utils.mock_llm import ask_llm
 
@@ -182,6 +184,12 @@ def ask(
         "cost_usd": result["cost_usd"],
         "tokens": {"in": result["tokens_in"], "out": result["tokens_out"]},
     }
+
+
+# Serve the demo shell from the same origin as the API. Keeping the UI here
+# avoids exposing an API key through a cross-origin frontend deployment.
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
 
 if __name__ == "__main__":

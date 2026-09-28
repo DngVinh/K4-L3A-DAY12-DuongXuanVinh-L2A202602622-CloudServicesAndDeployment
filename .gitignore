@@ -10,6 +10,7 @@ __pycache__/
 venv/
 env/
 .pytest_cache/
+.railway-context/
 *.egg-info/
 
 # OS / editor

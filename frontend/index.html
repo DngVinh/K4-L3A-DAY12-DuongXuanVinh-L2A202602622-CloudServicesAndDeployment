@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080a0f" />
+    <meta
+      name="description"
+      content="CloudPilot — a focused AI assistant for cloud and DevOps operations."
+    />
+    <title>CloudPilot — Cloud operations assistant</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="brand-name">CloudPilot</div>
+            <div class="brand-subtitle">CLOUD OPERATIONS</div>
+          </div>
+        </div>
+
+        <button class="new-chat-button" id="newChatButton" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          <span>New conversation</span>
+        </button>
+
+        <div class="sidebar-heading">
+          <span>Conversations</span>
+          <span class="sidebar-count">1</span>
+        </div>
+        <button class="conversation-item active" id="conversationItem" type="button">
+          <span class="conversation-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8.6 8.6 0 0 1-3.2-.6L4 20l1.6-3.7A7.2 7.2 0 0 1 4.5 12 7.5 7.5 0 0 1 12 4.5h.5A7.5 7.5 0 0 1 20 11.5Z" />
+            </svg>
+          </span>
+          <span class="conversation-copy">
+            <strong>Cloud operations</strong>
+            <small id="conversationUser">New session</small>
+          </span>
+          <span class="conversation-more">•••</span>
+        </button>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="sidebar-footer">
+          <button class="sidebar-link" id="settingsButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z" />
+              <path d="m19.4 15 .1.1a1.8 1.8 0 0 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3.1 1.3v.2a1.8 1.8 0 0 1-3.6 0v-.2a1.8 1.8 0 0 0-3.1-1.3l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-1.3-3.1h-.2a1.8 1.8 0 0 1 0-3.6h.2A1.8 1.8 0 0 0 4.6 5l-.1-.1A1.8 1.8 0 1 1 7 2.4l.1.1a1.8 1.8 0 0 0 3.1-1.3V1a1.8 1.8 0 0 1 3.6 0v.2a1.8 1.8 0 0 0 3.1 1.3l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 1.3 3.1h.2a1.8 1.8 0 0 1 0 3.6h-.2a1.8 1.8 0 0 0-1.3 3.1Z" />
+            </svg>
+            <span>Connection settings</span>
+          </button>
+          <div class="service-mini-card">
+            <span class="mini-status-dot" id="miniStatusDot"></span>
+            <div>
+              <strong id="miniStatusText">Checking service</strong>
+              <small>Railway production</small>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="Open navigation">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+          <div class="topbar-title">
+            <span class="eyebrow">WORKSPACE</span>
+            <strong>Cloud operations</strong>
+          </div>
+          <button class="status-pill" id="statusPill" type="button" title="Check service status">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Checking status</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v6h-6" />
+            </svg>
+          </button>
+        </header>
+
+        <section class="chat-shell">
+          <div class="chat-scroll" id="chatScroll">
+            <div class="welcome-state" id="welcomeState">
+              <div class="welcome-orb" aria-hidden="true">
+                <div class="orb-core"></div>
+                <div class="orb-ring ring-one"></div>
+                <div class="orb-ring ring-two"></div>
+              </div>
+              <div class="welcome-kicker">YOUR CLOUD COPILOT</div>
+              <h1>What can I help<br /><em>you ship?</em></h1>
+              <p>
+                Ask about Docker, deployment, Redis, scaling, or API reliability.
+                I’ll keep the context while you work.
+              </p>
+              <div class="prompt-grid" id="promptGrid">
+                <button class="prompt-card" type="button" data-prompt="Explain why Redis is needed when the agent scales to multiple containers.">
+                  <span class="prompt-icon violet">↗</span>
+                  <span><strong>Explain scaling</strong><small>Redis and stateless agents</small></span>
+                </button>
+                <button class="prompt-card" type="button" data-prompt="Give me a production checklist for deploying this FastAPI service with Docker.">
+                  <span class="prompt-icon blue">◈</span>
+                  <span><strong>Deployment checklist</strong><small>From image to healthy service</small></span>
+                </button>
+                <button class="prompt-card" type="button" data-prompt="What is the difference between a liveness check and a readiness check?"><span class="prompt-icon mint">✓</span><span><strong>Understand health checks</strong><small>Liveness vs readiness</small></span></button>
+                <button class="prompt-card" type="button" data-prompt="How do rate limits and monthly cost guards protect a public AI API?"><span class="prompt-icon amber">◌</span><span><strong>Protect an API</strong><small>Rate limits and budgets</small></span></button>
+              </div>
+            </div>
+            <div class="messages" id="messages" aria-live="polite"></div>
+          </div>
+
+          <div class="composer-area">
+            <div class="api-notice" id="apiNotice">
+              <span class="notice-icon">i</span>
+              <span>Add your API key to start a secure session.</span>
+              <button id="inlineSettingsButton" type="button">Connect</button>
+            </div>
+            <form class="composer" id="chatForm">
+              <textarea id="messageInput" rows="1" placeholder="Ask CloudPilot anything about your stack..." aria-label="Message"></textarea>
+              <button class="send-button" id="sendButton" type="submit" aria-label="Send message">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-4 14-3-6-7-1Z" /><path d="m12 13 3-3" /></svg>
+              </button>
+            </form>
+            <div class="composer-footer">
+              <span>CloudPilot can make mistakes. Verify production changes.</span>
+              <span class="connection-label" id="connectionLabel">No API key connected</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="settingsModal" hidden>
+      <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-header">
+          <div>
+            <span class="eyebrow">PRIVATE SESSION</span>
+            <h2 id="settingsTitle">Connection settings</h2>
+          </div>
+          <button class="icon-button" id="closeSettingsButton" type="button" aria-label="Close settings">×</button>
+        </div>
+        <p class="modal-copy">Connect this browser to your CloudPilot API. The key stays in session storage and is never written into the UI source.</p>
+        <form id="settingsForm">
+          <label>API base URL<input id="apiBaseInput" type="url" autocomplete="url" placeholder="https://your-service.up.railway.app" /></label>
+          <label>API key<input id="apiKeyInput" type="password" autocomplete="off" placeholder="Paste your AGENT_API_KEY" /></label>
+          <label>User ID<input id="userIdInput" type="text" autocomplete="off" maxlength="80" placeholder="e.g. vinh-demo" /></label>
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelSettingsButton" type="button">Cancel</button>
+            <button class="primary-button" type="submit">Save connection</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </body>
+</html>
