@@ -127,7 +127,19 @@ Chi tiết từng bước: [LAB_GUIDE.md](LAB_GUIDE.md).
 - Git + tài khoản GitHub
 - Tài khoản Railway hoặc Render (miễn phí, đăng ký ~5 phút — cần cho CP5)
 
-Không cần API key của OpenAI hoặc các bên cung cấp API khác: lab dùng **mock LLM** chạy offline.
+Mặc định lab dùng **mock LLM** chạy offline nên không cần API key của nhà cung cấp
+model. Có thể bật provider DeepSeek cho bản demo production bằng cách đặt key ở
+backend; tuyệt đối không đưa key này vào frontend:
+
+```dotenv
+LLM_PROVIDER=deepseek
+DEEPSEEK_API_KEY=<đặt trong secret của server>
+DEEPSEEK_MODEL=deepseek-flash
+```
+
+`deepseek-flash` và endpoint `https://api.deepseek.com/chat/completions` theo
+format Chat Completions hiện hành của DeepSeek. Xem [tài liệu chính thức của
+DeepSeek](https://api-docs.deepseek.com/api/create-chat-completion/).
 
 ### Môi trường ảo & thư viện
 

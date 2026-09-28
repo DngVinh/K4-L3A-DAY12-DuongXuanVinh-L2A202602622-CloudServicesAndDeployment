@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     | rate_limit_per_minute   | int   | 10                         |
     | monthly_budget_usd      | float | 10.0                       |
     | log_level               | str   | "INFO"                     |
+    | llm_provider            | str   | "mock"                     |
+    | deepseek_api_key        | str   | không mặc định              |
+    | deepseek_model          | str   | "deepseek-flash"            |
 
     Vì sao ``agent_api_key`` không được có giá trị mặc định? Vì mặc định
     nghĩa là app vẫn khởi động khi bạn quên set secret trên cloud — và bạn
@@ -50,6 +53,15 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 10
     monthly_budget_usd: float = 10.0
     log_level: str = "INFO"
+    llm_provider: str = "mock"
+    deepseek_api_key: str | None = None
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-flash"
+    deepseek_timeout_seconds: float = 60.0
+    deepseek_max_tokens: int = 1024
+    deepseek_input_price_per_million: float = 0.15
+    deepseek_input_cache_price_per_million: float = 0.003
+    deepseek_output_price_per_million: float = 0.60
 
 
 @lru_cache(maxsize=1)

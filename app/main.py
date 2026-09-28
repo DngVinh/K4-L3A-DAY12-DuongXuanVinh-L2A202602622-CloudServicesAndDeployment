@@ -17,16 +17,15 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from fastapi.staticfiles import StaticFiles
 
-from utils.mock_llm import ask_llm
-
 from .auth import verify_api_key
 from .config import get_settings
 from .cost_guard import CostGuard
+from .llm import DeepSeekProviderError, ask_llm
 from .lifecycle import lifecycle
 from .logging_utils import log_event
 from .rate_limiter import RateLimiter
@@ -164,7 +163,10 @@ def ask(
     guard.check(user_id)
 
     history = store.get_history(user_id)
-    result = ask_llm(payload.question, history)
+    try:
+        result = ask_llm(payload.question, history)
+    except DeepSeekProviderError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     store.append(user_id, "user", payload.question)
     store.append(user_id, "assistant", result["answer"])
